@@ -1,0 +1,734 @@
+basePath: /
+definitions:
+  handlers.ChangeRoleRequest:
+    properties:
+      role:
+        type: string
+      user_name:
+        type: string
+    type: object
+  handlers.CreateTournamentRequest:
+    properties:
+      endedAt:
+        type: string
+      name:
+        type: string
+      startedAt:
+        type: string
+    type: object
+  handlers.FinishMiniGameRequest:
+    properties:
+      hash:
+        type: string
+      score:
+        type: integer
+      session_id:
+        type: string
+    type: object
+  handlers.MiniGameLeaderboardEntry:
+    properties:
+      score:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  handlers.StartMiniGameResponse:
+    properties:
+      duration:
+        type: integer
+      session_id:
+        type: string
+    type: object
+  models.GameHistory:
+    properties:
+      id:
+        type: string
+      is_succes:
+        type: boolean
+      played_at:
+        type: string
+      score:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  models.LeaderboardEntry:
+    properties:
+      score:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  models.Reward:
+    properties:
+      claimed:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      user_name:
+        type: string
+    type: object
+  models.Tournament:
+    properties:
+      endedAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      startedAt:
+        type: string
+      winner:
+        type: string
+    type: object
+  models.User:
+    properties:
+      id:
+        type: integer
+      passwordHash:
+        type: string
+      salt:
+        type: string
+      userEmail:
+        type: string
+      userName:
+        type: string
+      userRole:
+        type: string
+    type: object
+  models.UserDelete:
+    properties:
+      user_name:
+        type: string
+      user_password:
+        type: string
+    type: object
+  models.UserLogin:
+    properties:
+      user_name:
+        type: string
+      user_password:
+        type: string
+    type: object
+  models.UserProfile:
+    properties:
+      user_email:
+        type: string
+      user_name:
+        type: string
+    type: object
+  models.UserRegister:
+    properties:
+      user_email:
+        type: string
+      user_name:
+        type: string
+      user_password:
+        type: string
+    type: object
+  models.UserResponse:
+    properties:
+      id:
+        type: integer
+      user_email:
+        type: string
+      user_name:
+        type: string
+      user_role:
+        type: string
+    type: object
+  models.UserUpdate:
+    properties:
+      new_user_name:
+        type: string
+      new_user_password:
+        type: string
+      user_name:
+        type: string
+      user_password:
+        type: string
+    type: object
+  service.ClaimRewardRequest:
+    properties:
+      reward_id:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: Simple user service
+  title: User API
+  version: "1.0"
+paths:
+  /api/admin/games:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GameHistory'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: История игр
+      tags:
+      - Admin
+  /api/admin/rewards:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Reward'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Все награды
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reward
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Reward'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Reward'
+      security:
+      - BearerAuth: []
+      summary: Создать награду
+      tags:
+      - Admin
+  /api/admin/tournaments:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового турнира
+      parameters:
+      - description: Tournament
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTournamentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateTournamentRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать турнир
+      tags:
+      - Admin
+  /api/admin/tournaments/{id}:
+    delete:
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить турнир
+      tags:
+      - Admin
+  /api/admin/users:
+    get:
+      description: Возвращает список всех пользователей
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить всех пользователей
+      tags:
+      - Admin
+  /api/admin/users/{username}:
+    delete:
+      description: Удаление пользователя по username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить пользователя
+      tags:
+      - Admin
+    get:
+      description: Получить пользователя по username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить пользователя
+      tags:
+      - Admin
+  /api/admin/users/role:
+    put:
+      consumes:
+      - application/json
+      description: Изменение роли пользователя
+      parameters:
+      - description: Role data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ChangeRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Изменить роль пользователя
+      tags:
+      - Admin
+  /api/games/history/global:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GameHistory'
+            type: array
+      summary: История всех игр
+      tags:
+      - Games
+  /api/latest_tournaments:
+    get:
+      description: Получить все турниры
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.CreateTournamentRequest'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Список турниров
+      tags:
+      - Admin
+  /api/minigame/finish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Game Result
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.FinishMiniGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Завершить мини-игру
+      tags:
+      - MiniGame
+  /api/minigame/leaderboard:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.MiniGameLeaderboardEntry'
+            type: array
+      summary: Лидерборд мини-игры
+      tags:
+      - MiniGame
+  /api/minigame/start:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.StartMiniGameResponse'
+      security:
+      - BearerAuth: []
+      summary: Начать мини-игру
+      tags:
+      - MiniGame
+  /api/rewards:
+    get:
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Reward'
+            type: array
+      summary: Инвентарь игрока
+      tags:
+      - Rewards
+  /api/rewards/claim:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reward ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.ClaimRewardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Reward'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить награду
+      tags:
+      - Rewards
+  /api/tournament:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tournament'
+      summary: Текущий турнир
+      tags:
+      - Tournament
+  /api/tournament/top:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.LeaderboardEntry'
+            type: array
+      summary: Топ игроков турнира
+      tags:
+      - Tournament
+  /api/user/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление пользователя по логину и паролю
+      parameters:
+      - description: Delete data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserDelete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить пользователя
+      tags:
+      - Users
+  /api/user/login:
+    post:
+      consumes:
+      - application/json
+      description: Вход по логину и паролю
+      parameters:
+      - description: Login data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Авторизация пользователя
+      tags:
+      - Users
+  /api/user/profile/{username}:
+    get:
+      description: Получение профиля по имени пользователя
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить профиль пользователя
+      tags:
+      - Users
+  /api/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового пользователя
+      parameters:
+      - description: Register data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRegister'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - Users
+  /api/user/update:
+    post:
+      consumes:
+      - application/json
+      description: Изменение логина и пароля пользователя
+      parameters:
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновить пользователя
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

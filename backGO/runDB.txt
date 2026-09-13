@@ -1,0 +1,11 @@
+docker run --name postgres-game \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=903908452 \
+  -e POSTGRES_DB=game \
+  -p 9000:5432 \
+  -d postgres:17
+
+docker run \
+  --name redis-game \
+  -p 6379:6379 \
+  -d redis:7
